@@ -54,17 +54,30 @@ function slowDown(e){
 }
 
 function move() {
-    if(ship.accelerating) {
-        ship.speed.x += ship_acceleration * Math.cos(ship.angle) / FPS;
-        ship.speed.y += ship_acceleration * Math.sin(ship.angle) / FPS;
-        drawFire();
-    } else {
-        ship.speed.x -= friction * ship.speed.x / FPS;
-        ship.speed.y -= friction * ship.speed.y / FPS;
+    if(ship.x + ship.radius < 0) {
+        ship.x = width + ship.radius;
+    } else if (ship.x - ship.radius > width) {
+        ship.x = 0;
     }
 
-    ship.x += ship.speed.x;
-    ship.y += ship.speed.y;
+    if(ship.y + ship.radius < 0) {
+        ship.y = height + ship.radius;
+    } else if (ship.y - ship.radius > height) {
+        ship.y = 0;
+    }
+
+
+    if(ship.accelerating) {
+            ship.speed.x += ship_acceleration * Math.cos(ship.angle) / FPS;
+            ship.speed.y += ship_acceleration * Math.sin(ship.angle) / FPS;
+            drawFire();
+        } else {
+            ship.speed.x -= friction * ship.speed.x / FPS;
+            ship.speed.y -= friction * ship.speed.y / FPS;
+        }
+
+        ship.x += ship.speed.x;
+        ship.y += ship.speed.y;
 }
 
 function drawFire() {
