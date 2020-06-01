@@ -7,28 +7,63 @@ canvas.height = 500;
 const width = canvas.width;
 const height = canvas.height;
 
-setInterval(update, 1000/60);
+const FPS = 60;
+
+setInterval(update, 1000/FPS);
 
 const ship_colors = ["white", "red", "lime", "yellow", "blue"];
+const ship_acceleration = 7;
+const friction = 0.5;
 
 var ship = {
     x: width / 2,
     y: height / 2,
     radius: 15,
     angle: 0, //in radians
+    speed: {
+        x: 0,
+        y: 0
+    },
+    accelerating: false,
 
     color: 0 //na razie 0, ale później wybierze użythownik //odpowiada pozycji w liście ship_colors
-}
+};
 
 document.addEventListener("mousemove", rotateShip);
-var topCanvas = canvas.offsetTop; //to control the middle of player
-var leftCanvas = canvas.offsetLeft;
-
 
 function rotateShip(e){
     var x = e.clientX - canvas.offsetLeft - ship.x;
-    var y = e.clientY - canvas.offsetTop - ship.y;// - leftCanvas;
+    var y = e.clientY - canvas.offsetTop - ship.y;
     ship.angle = Math.atan2(y, x)
+}
+
+document.addEventListener("keydown", speedUp);
+
+function speedUp(e){
+    if(e.key == "ArrowUp" || e.key == "w" || e.key == " "){ //space is temporart for tests
+        ship.accelerating = true;
+    }
+}
+
+document.addEventListener("keyup", slowDown);
+
+function slowDown(e){
+    if(e.key == "ArrowUp" || e.key == "w" || e.key == " ") { //chcemy, żeby spowalniał tylko jak przestajemy się ruszać
+        ship.accelerating = false;
+    }
+}
+
+function move() {
+    if(ship.accelerating) {
+        ship.speed.x += ship_acceleration * Math.cos(ship.angle) / FPS;
+        ship.speed.y += ship_acceleration * Math.sin(ship.angle) / FPS;
+    } else {
+        ship.speed.x -= friction * ship.speed.x / FPS;
+        ship.speed.y -= friction * ship.speed.y / FPS;
+    }
+
+    ship.x += ship.speed.x;
+    ship.y += ship.speed.y;
 }
 
 function drawSpace(){
@@ -40,9 +75,7 @@ function drawShip(){
     ctx.save();
 
     ctx.translate(ship.x, ship.y);
-
     ctx.rotate(ship.angle);
-    //ctx.rotate(-ship.angle); //rotates clockwise, I want counter clockwise (90-top)
 
     ctx.strokeStyle = ship_colors[ship.color];
     ctx.lineWidth = 2;
@@ -57,6 +90,9 @@ function drawShip(){
     ctx.stroke();
 
     ctx.restore();
+
+    move();
+
 }
 
 function update(){
