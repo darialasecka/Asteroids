@@ -15,8 +15,20 @@ var ship = {
     x: width / 2,
     y: height / 2,
     radius: 15,
-    angle: 90 * Math.PI / 180, //in radians degree * Math.PI / 180
+    angle: 0, //in radians
+
     color: 0 //na razie 0, ale później wybierze użythownik //odpowiada pozycji w liście ship_colors
+}
+
+document.addEventListener("mousemove", rotateShip);
+var topCanvas = canvas.offsetTop; //to control the middle of player
+var leftCanvas = canvas.offsetLeft;
+
+
+function rotateShip(e){
+    var x = e.clientX - canvas.offsetLeft - ship.x;
+    var y = e.clientY - canvas.offsetTop - ship.y;// - leftCanvas;
+    ship.angle = Math.atan2(y, x)
 }
 
 function drawSpace(){
@@ -28,7 +40,9 @@ function drawShip(){
     ctx.save();
 
     ctx.translate(ship.x, ship.y);
-    ctx.rotate(-ship.angle); //rotates clockwise, I want counter clockwise (90-top)
+
+    ctx.rotate(ship.angle);
+    //ctx.rotate(-ship.angle); //rotates clockwise, I want counter clockwise (90-top)
 
     ctx.strokeStyle = ship_colors[ship.color];
     ctx.lineWidth = 2;
