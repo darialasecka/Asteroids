@@ -57,6 +57,7 @@ function move() {
     if(ship.accelerating) {
         ship.speed.x += ship_acceleration * Math.cos(ship.angle) / FPS;
         ship.speed.y += ship_acceleration * Math.sin(ship.angle) / FPS;
+        drawFire();
     } else {
         ship.speed.x -= friction * ship.speed.x / FPS;
         ship.speed.y -= friction * ship.speed.y / FPS;
@@ -64,6 +65,36 @@ function move() {
 
     ship.x += ship.speed.x;
     ship.y += ship.speed.y;
+}
+
+function drawFire() {
+    var fire = {
+        x: ship.x - ship.speed.x - 1.8 * ship.radius * Math.cos(ship.angle),
+        y: ship.y - ship.speed.y - 1.8 * ship.radius * Math.sin(ship.angle),
+        radius: 7,
+        angle: ship.angle + Math.PI,
+
+        color: "orange" //na razie 0, ale później wybierze użythownik //odpowiada pozycji w liście ship_colors
+    };
+
+    ctx.save();
+
+    ctx.translate(fire.x, fire.y);
+    ctx.rotate(fire.angle);
+
+    ctx.strokeStyle = fire.color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(fire.radius, 0);
+    //right side
+    ctx.lineTo(-fire.radius, fire.radius);
+    // bottom
+    ctx.lineTo(-fire.radius, -fire.radius);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
 }
 
 function drawSpace(){
