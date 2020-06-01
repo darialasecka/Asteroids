@@ -11,9 +11,17 @@ const FPS = 60;
 
 setInterval(update, 1000/FPS);
 
+//ship
 const ship_colors = ["white", "red", "lime", "yellow", "blue"];
 const ship_acceleration = 7;
 const friction = 0.5;
+const MAX_SPEED = 20;
+
+//asteroids
+const asteroidSpeed = 50;
+const asteroidSize = 50;
+const maxSides = 25;
+const minSides = 5;
 
 var ship = {
     x: width / 2,
@@ -29,6 +37,16 @@ var ship = {
     color: 0 //na razie 0, ale później wybierze użythownik //odpowiada pozycji w liście ship_colors
 };
 
+var asteroids = [];
+createMultipleAsteroids(3);
+
+// ===================== space =====================
+function drawSpace(){
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, width, height);
+}
+
+// ===================== ship =====================
 document.addEventListener("mousemove", rotateShip);
 
 function rotateShip(e){
@@ -68,8 +86,8 @@ function move() {
 
 
     if(ship.accelerating) {
-            ship.speed.x += ship_acceleration * Math.cos(ship.angle) / FPS;
-            ship.speed.y += ship_acceleration * Math.sin(ship.angle) / FPS;
+            if(ship.speed.x < MAX_SPEED) ship.speed.x += ship_acceleration * Math.cos(ship.angle) / FPS;
+            if(ship.speed.y < MAX_SPEED) ship.speed.y += ship_acceleration * Math.sin(ship.angle) / FPS;
             drawFire();
         } else {
             ship.speed.x -= friction * ship.speed.x / FPS;
@@ -110,16 +128,12 @@ function drawFire() {
     ctx.restore();
 }
 
-function drawSpace(){
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, width, height);
-}
-
 function drawShip(){
     ctx.save();
 
     ctx.translate(ship.x, ship.y);
     ctx.rotate(ship.angle);
+
 
     ctx.strokeStyle = ship_colors[ship.color];
     ctx.lineWidth = 2;
@@ -136,11 +150,78 @@ function drawShip(){
     ctx.restore();
 
     move();
+}
+
+// ===================== asteroids =====================
+function createMultipleAsteroids(astCount) {
+    asteroids = [];
+    for(var i = 0; i < astCount; i++){
+        do {
+            var x = Math.random() * width;
+            var y = Math.random() * height;
+        } while (!asteroidInShip(x, y)); //asteroids won't spawn in ship
+        asteroids.push(newAsteroid(x, y));
+    }
+}
+
+function asteroidInShip(x, y){
+    //distance beetween 2 points
+    var distance = Math.sqrt(Math.pow(ship.x - x, 2) + Math.pow(ship.y - y, 2));
+    var spacing = asteroidSize * 3 + ship.radius;
+    return distance < spacing ? false : true;
 
 }
+
+function newAsteroid(x, y) {
+    var asteroid = {
+        x: x,
+        y: y,
+        speed: {
+            x: Math.random() * asteroidSpeed / FPS * (Math.random < 0.5 ? 1 : -1),
+            y: Math.random() * asteroidSpeed / FPS * (Math.random < 0.5 ? 1 : -1)
+        },
+        radius: asteroidSize,
+        angle: Math.random() * Math.PI * 2,
+        sides: Math.floor(Math.random() * (maxSides - minSides)) + minSides,
+        offset: []
+    };
+
+    for(var i = 0; i < asteroid.sides; i++){
+        asteroid.offset.push(Math.floor(Math.random() * 20) - 10);
+    }
+
+    return asteroid;
+}
+
+function drawAsteroids() {
+
+    ctx.strokeStyle = "grey";
+    ctx.lineWidth = 2;
+    for(var i = 0; i < asteroids.length; i++){
+        var ast = asteroids[i];
+        ctx.save();
+        ctx.translate(ast.x, ast.y);
+        ctx.beginPath();
+        ctx.moveTo(ast.radius * Math.cos(ast.angle), ast.radius * Math.sin(ast.angle));
+        //ctx.arc(0, 0, ast.radius, 0, Math.PI * 2, true);
+
+        for (var j = 1; j < ast.sides; j++) {
+            ctx.lineTo(
+                (ast.radius + ast.offset[j]) * Math.cos(ast.angle + j * Math.PI * 2 / ast.sides),
+                (ast.radius + ast.offset[j]) * Math.sin(ast.angle + j * Math.PI * 2 / ast.sides)
+            );
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.restore();
+    }
+}
+
 
 function update(){
     drawSpace();
     drawShip();
+    drawAsteroids();
 }
 
