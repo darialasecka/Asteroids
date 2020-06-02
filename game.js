@@ -29,11 +29,12 @@ const maxSides = 25;
 const minSides = 5;
 
 var asteroids = [];
-createMultipleAsteroids(1);
+createMultipleAsteroids(5);
 
 //bullets
 const MAX_BULLETS = 4;
 const bulletSpeed = 17;
+const MAX_DISTANCE = 420;
 
 // ===================== space =====================
 
@@ -115,7 +116,6 @@ function move() {
         if(Math.abs(ship.speed.x) < MAX_SPEED) ship.speed.x += ship_acceleration * Math.cos(ship.angle) / FPS;
         if(Math.abs(ship.speed.y) < MAX_SPEED) ship.speed.y += ship_acceleration * Math.sin(ship.angle) / FPS;
         drawFire();
-        console.log(ship.speed.y);
     } else {
         ship.speed.x -= friction * ship.speed.x / FPS;
         ship.speed.y -= friction * ship.speed.y / FPS;
@@ -258,7 +258,7 @@ function drawAsteroids() {
 
     ctx.strokeStyle = "grey";
     ctx.lineWidth = 2;
-    for(var i = 0; i < asteroids.length; i++){
+    for(var i = asteroids.length - 1; i >= 0; i--){
         var ast = asteroids[i];
         ctx.save();
         ctx.translate(ast.x, ast.y);
@@ -287,14 +287,12 @@ function drawAsteroids() {
             ship.invisibility--;
         }
         //bullets collision
-        for(var j = 0; j < ship.bullets.length; j++){
+        for(var j = ship.bullets.length - 1; j >= 0 ; j--){
             var bullet = ship.bullets[j];
             if(asteroidCollides(ast.x, ast.y, bullet.x, bullet.y, asteroidSize + bullet.radius)){
                 ship.bullets.splice(j, 1);
             }
         }
-
-
     }
 }
 
@@ -308,7 +306,8 @@ function newBullet(x, y){
         speed: {
             x: bulletSpeed * Math.cos(ship.angle),
             y: bulletSpeed * Math.sin(ship.angle)
-        }
+        },
+        distance: MAX_DISTANCE
     }
     return bullet;
 }
@@ -337,11 +336,12 @@ function moveBullet(bullet){
 
     bullet.x += bullet.speed.x;
     bullet.y += bullet.speed.y;
+
+    bullet.distance -= Math.sqrt(Math.pow(bullet.speed.x, 2) + Math.pow(bullet.speed.y, 2));
 }
 
 function drawBullets(){
-    for(var i = 0; i < ship.bullets.length; i++){
-        console.log("shoot!");
+    for(var i = ship.bullets.length - 1; i >= 0; i--){
         var bullet = ship.bullets[i];
 
         ctx.save();
@@ -355,6 +355,10 @@ function drawBullets(){
         ctx.restore();
 
         moveBullet(bullet);
+
+        if(bullet.distance < 0) {
+            ship.bullets.splice(i, 1);
+        }
     }
 }
 
@@ -364,7 +368,7 @@ function update(){
     drawShip();
      if(ship.explosionTime == 0){
         newShip();
-        console.log("Teraz by się życie liczyło");
+        console.log("-1 <3");
     }
 
     drawAsteroids();
