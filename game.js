@@ -38,15 +38,17 @@ var ship = {
 };
 
 var asteroids = [];
-createMultipleAsteroids(3);
+createMultipleAsteroids(5);
 
 // ===================== space =====================
+
 function drawSpace(){
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, width, height);
 }
 
 // ===================== ship =====================
+
 document.addEventListener("mousemove", rotateShip);
 
 function rotateShip(e){
@@ -153,22 +155,22 @@ function drawShip(){
 }
 
 // ===================== asteroids =====================
+
 function createMultipleAsteroids(astCount) {
     asteroids = [];
     for(var i = 0; i < astCount; i++){
         do {
             var x = Math.random() * width;
             var y = Math.random() * height;
-        } while (!asteroidInShip(x, y)); //asteroids won't spawn in ship
+        } while (asteroidInShip(x, y, asteroidSize * 3 + ship.radius)); //asteroids won't spawn in ship and too close to it
         asteroids.push(newAsteroid(x, y));
     }
 }
 
-function asteroidInShip(x, y){
+function asteroidInShip(x, y, spacing){
     //distance beetween 2 points
     var distance = Math.sqrt(Math.pow(ship.x - x, 2) + Math.pow(ship.y - y, 2));
-    var spacing = asteroidSize * 3 + ship.radius;
-    return distance < spacing ? false : true;
+    return distance < spacing ? true : false;
 
 }
 
@@ -177,20 +179,36 @@ function newAsteroid(x, y) {
         x: x,
         y: y,
         speed: {
-            x: Math.random() * asteroidSpeed / FPS * (Math.random < 0.5 ? 1 : -1),
-            y: Math.random() * asteroidSpeed / FPS * (Math.random < 0.5 ? 1 : -1)
+            x: Math.random() * asteroidSpeed / FPS * (Math.random() < 0.5 ? 1 : -1),
+            y: Math.random() * asteroidSpeed / FPS * (Math.random() < 0.5 ? 1 : -1)
         },
         radius: asteroidSize,
         angle: Math.random() * Math.PI * 2,
         sides: Math.floor(Math.random() * (maxSides - minSides)) + minSides,
         offset: []
     };
-
     for(var i = 0; i < asteroid.sides; i++){
         asteroid.offset.push(Math.floor(Math.random() * 20) - 10);
     }
 
     return asteroid;
+}
+
+function moveAsteroids(asteroid){
+    if(asteroid.x + asteroid.radius < 0) {
+        asteroid.x = width + asteroid.radius;
+    } else if (asteroid.x - asteroid.radius > width) {
+        asteroid.x = 0;
+    }
+
+    if(asteroid.y + asteroid.radius < 0) {
+        asteroid.y = height + asteroid.radius;
+    } else if (asteroid.y - asteroid.radius > height) {
+        asteroid.y = 0;
+    }
+
+    asteroid.x += asteroid.speed.x;
+    asteroid.y += asteroid.speed.y;
 }
 
 function drawAsteroids() {
@@ -202,9 +220,7 @@ function drawAsteroids() {
         ctx.save();
         ctx.translate(ast.x, ast.y);
         ctx.beginPath();
-        ctx.moveTo(ast.radius * Math.cos(ast.angle), ast.radius * Math.sin(ast.angle));
-        //ctx.arc(0, 0, ast.radius, 0, Math.PI * 2, true);
-
+        ctx.moveTo((ast.radius + ast.offset[0]) * Math.cos(ast.angle), (ast.radius + ast.offset[0]) * Math.sin(ast.angle));
         for (var j = 1; j < ast.sides; j++) {
             ctx.lineTo(
                 (ast.radius + ast.offset[j]) * Math.cos(ast.angle + j * Math.PI * 2 / ast.sides),
@@ -215,7 +231,12 @@ function drawAsteroids() {
         ctx.stroke();
 
         ctx.restore();
+
+        moveAsteroids(ast);
+
+        if(asteroidInShip(ast.x, ast.y, asteroidSize + ship.radius)) console.log("Ded");
     }
+
 }
 
 
