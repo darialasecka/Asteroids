@@ -25,8 +25,9 @@ newShip();
 //asteroids
 const asteroidSpeed = 50;
 const asteroidSize = 50;
-const maxSides = 25;
-const minSides = 5;
+//const maxSides = 25;
+//const minSides = 5;
+const MAX_LIVES = 3;
 
 var asteroids = [];
 createMultipleAsteroids(5);
@@ -64,7 +65,6 @@ function newShip(){
 
         color: 0 //na razie 0, ale później wybierze użythownik //odpowiada pozycji w liście ship_colors
     };
-
 }
 
 
@@ -82,7 +82,7 @@ function speedUpAndShoot(e){
     if(e.key == "ArrowUp" || e.key == "w"){ //space is temporart for tests
         ship.accelerating = true;
     }
-    if(e.key == " " && ship.canShoot){
+    if(e.key == " " && ship.canShoot && !ship.dead){
         shoot();
     }
 }
@@ -206,7 +206,7 @@ function createMultipleAsteroids(astCount) {
             var x = Math.random() * width;
             var y = Math.random() * height;
         } while (asteroidCollides(x, y, ship.x, ship.y, asteroidSize * 3 + ship.radius)); //asteroids won't spawn in ship and too close to it
-        asteroids.push(newAsteroid(x, y));
+        asteroids.push(newAsteroid(x, y, asteroidSize, MAX_LIVES));
     }
 }
 
@@ -217,7 +217,9 @@ function asteroidCollides(x1, y1, x2, y2, spacing){
 
 }
 
-function newAsteroid(x, y) {
+function newAsteroid(x, y, radius, lives) {
+    var minSides = (lives + 2) * 2;
+    var maxSides = Math.pow(lives + 2, 2);
     var asteroid = {
         x: x,
         y: y,
@@ -225,15 +227,15 @@ function newAsteroid(x, y) {
             x: Math.random() * asteroidSpeed / FPS * (Math.random() < 0.5 ? 1 : -1),
             y: Math.random() * asteroidSpeed / FPS * (Math.random() < 0.5 ? 1 : -1)
         },
-        radius: asteroidSize,
+        radius: radius,
         angle: Math.random() * Math.PI * 2,
         sides: Math.floor(Math.random() * (maxSides - minSides)) + minSides,
-        offset: []
+        offset: [],
+        lives: lives
     };
     for(var i = 0; i < asteroid.sides; i++){
         asteroid.offset.push(Math.floor(Math.random() * 20) - 10);
     }
-
     return asteroid;
 }
 
@@ -252,6 +254,17 @@ function moveAsteroid(asteroid){
 
     asteroid.x += asteroid.speed.x;
     asteroid.y += asteroid.speed.y;
+}
+
+function destroyAsteroid(index) {
+    var asteroid = asteroids[index];
+
+    console.log(asteroid.lives);
+    if(asteroid.lives != 1) {
+        asteroids.push(newAsteroid(asteroid.x, asteroid.y, Math.ceil(asteroid.radius / 2), asteroid.lives - 1));
+        asteroids.push(newAsteroid(asteroid.x, asteroid.y, Math.ceil(asteroid.radius / 2), asteroid.lives - 1));
+    }
+    asteroids.splice(index, 1);
 }
 
 function drawAsteroids() {
@@ -282,16 +295,18 @@ function drawAsteroids() {
         if (ship.invisibility == 0) {//invisibility frames won't count for first live
             if (asteroidCollides(ast.x, ast.y, ship.x, ship.y, asteroidSize + ship.radius)) {
                 ship.dead = true;
+                destroyAsteroid(i);
             }
         } else {
             ship.invisibility--;
         }
+
         //bullets collision
         for(var j = ship.bullets.length - 1; j >= 0 ; j--){
             var bullet = ship.bullets[j];
             if(asteroidCollides(ast.x, ast.y, bullet.x, bullet.y, asteroidSize + bullet.radius)){
                 ship.bullets.splice(j, 1);
-                asteroids.splice(i, 1);
+                destroyAsteroid(i);
             }
         }
     }
