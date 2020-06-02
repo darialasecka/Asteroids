@@ -15,9 +15,12 @@ setInterval(update, 1000/FPS);
 const ship_colors = ["white", "red", "lime", "yellow", "blue"];
 const ship_acceleration = 7;
 const friction = 0.5;
-const MAX_SPEED = 20;
-const MAX_EXPLOSION_TIME = FPS; //about 3 seconds
+const MAX_SPEED = 17;
+const MAX_EXPLOSION_TIME = FPS;
 const INVISIBILITY_FRAMES = FPS * 6;
+
+var ship;
+newShip();
 
 //asteroids
 const asteroidSpeed = 50;
@@ -25,11 +28,12 @@ const asteroidSize = 50;
 const maxSides = 25;
 const minSides = 5;
 
-var ship;
-newShip();
-
 var asteroids = [];
-createMultipleAsteroids(5);
+createMultipleAsteroids(1);
+
+//bullets
+const MAX_BULLETS = 4;
+const bulletSpeed = 17;
 
 // ===================== space =====================
 
@@ -54,6 +58,8 @@ function newShip(){
         dead: false,
         explosionTime: MAX_EXPLOSION_TIME,
         invisibility: INVISIBILITY_FRAMES,
+        canShoot: true,
+        bullets: [],
 
         color: 0 //na razie 0, ale później wybierze użythownik //odpowiada pozycji w liście ship_colors
     };
@@ -69,19 +75,25 @@ function rotateShip(e){
     ship.angle = Math.atan2(y, x)
 }
 
-document.addEventListener("keydown", speedUp);
+document.addEventListener("keydown", speedUpAndShoot);
 
-function speedUp(e){
-    if(e.key == "ArrowUp" || e.key == "w" || e.key == " "){ //space is temporart for tests
+function speedUpAndShoot(e){
+    if(e.key == "ArrowUp" || e.key == "w"){ //space is temporart for tests
         ship.accelerating = true;
+    }
+    if(e.key == " " && ship.canShoot){
+        shoot();
     }
 }
 
 document.addEventListener("keyup", slowDown);
 
 function slowDown(e){
-    if(e.key == "ArrowUp" || e.key == "w" || e.key == " ") { //chcemy, żeby spowalniał tylko jak przestajemy się ruszać
+    if(e.key == "ArrowUp" || e.key == "w") { //chcemy, żeby spowalniał tylko jak przestajemy się ruszać
         ship.accelerating = false;
+    }
+    if( e.key == " "){
+        ship.canShoot = true;
     }
 }
 
@@ -100,9 +112,10 @@ function move() {
 
 
     if(ship.accelerating) {
-        if(ship.speed.x < MAX_SPEED) ship.speed.x += ship_acceleration * Math.cos(ship.angle) / FPS;
-        if(ship.speed.y < MAX_SPEED) ship.speed.y += ship_acceleration * Math.sin(ship.angle) / FPS;
+        if(Math.abs(ship.speed.x) < MAX_SPEED) ship.speed.x += ship_acceleration * Math.cos(ship.angle) / FPS;
+        if(Math.abs(ship.speed.y) < MAX_SPEED) ship.speed.y += ship_acceleration * Math.sin(ship.angle) / FPS;
         drawFire();
+        console.log(ship.speed.y);
     } else {
         ship.speed.x -= friction * ship.speed.x / FPS;
         ship.speed.y -= friction * ship.speed.y / FPS;
@@ -192,14 +205,14 @@ function createMultipleAsteroids(astCount) {
         do {
             var x = Math.random() * width;
             var y = Math.random() * height;
-        } while (asteroidInShip(x, y, asteroidSize * 3 + ship.radius)); //asteroids won't spawn in ship and too close to it
+        } while (asteroidCollides(x, y, ship.x, ship.y, asteroidSize * 3 + ship.radius)); //asteroids won't spawn in ship and too close to it
         asteroids.push(newAsteroid(x, y));
     }
 }
 
-function asteroidInShip(x, y, spacing){
+function asteroidCollides(x1, y1, x2, y2, spacing){
     //distance beetween 2 points
-    var distance = Math.sqrt(Math.pow(ship.x - x, 2) + Math.pow(ship.y - y, 2));
+    var distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
     return distance < spacing ? true : false;
 
 }
@@ -224,7 +237,7 @@ function newAsteroid(x, y) {
     return asteroid;
 }
 
-function moveAsteroids(asteroid){
+function moveAsteroid(asteroid){
     if(asteroid.x + asteroid.radius < 0) {
         asteroid.x = width + asteroid.radius;
     } else if (asteroid.x - asteroid.radius > width) {
@@ -262,18 +275,79 @@ function drawAsteroids() {
 
         ctx.restore();
 
-        moveAsteroids(ast);
+        moveAsteroid(ast);
 
         //giving player a chance to run away when spawning in rock
         if (ship.invisibility == 0) {//invisibility frames won't count for first live
-            if (asteroidInShip(ast.x, ast.y, asteroidSize + ship.radius)) {
+            if (asteroidCollides(ast.x, ast.y, ship.x, ship.y, asteroidSize + ship.radius)) {
                 ship.dead = true;
             }
         } else {
             ship.invisibility--;
         }
     }
+}
 
+// ===================== bullets =====================
+
+function newBullet(x, y){
+    bullet = {
+        x: x + ship.radius * Math.cos(ship.angle),
+        y: y + ship.radius * Math.sin(ship.angle),
+        radius: 2.5,
+        speed: {
+            x: bulletSpeed * Math.cos(ship.angle),
+            y: bulletSpeed * Math.sin(ship.angle)
+        }
+    }
+    return bullet;
+}
+
+
+function shoot(){
+    if(ship.bullets.length < MAX_BULLETS){
+        ship.bullets.push(newBullet(ship.x, ship.y));
+    }
+
+    ship.canShoot = false;
+}
+
+function moveBullet(bullet){
+    if(bullet.x + bullet.radius < 0) {
+        bullet.x = width + bullet.radius;
+    } else if (bullet.x - bullet.radius > width) {
+        bullet.x = 0;
+    }
+
+    if(bullet.y + bullet.radius < 0) {
+        bullet.y = height + bullet.radius;
+    } else if (bullet.y - bullet.radius > height) {
+        bullet.y = 0;
+    }
+
+    bullet.x += bullet.speed.x;
+    bullet.y += bullet.speed.y;
+}
+
+function drawBullets(){
+    for(var i = 0; i < ship.bullets.length; i++){
+        console.log("shoot!");
+        var bullet = ship.bullets[i];
+
+        ctx.save();
+        ctx.translate(bullet.x, bullet.y);
+
+        ctx.fillStyle = ship_colors[ship.color]; //have the same color as ship
+        ctx.beginPath();
+        ctx.arc(0, 0, bullet.radius, 0, Math.PI * 2, true);
+        ctx.fill();
+
+        ctx.restore();
+
+        moveBullet(bullet);
+
+        //bullet collision with asteroid - here?
+    }
 }
 
 
@@ -286,5 +360,6 @@ function update(){
     }
 
     drawAsteroids();
+    drawBullets();
 }
 
