@@ -291,6 +291,7 @@ function drawAsteroids() {
             var bullet = ship.bullets[j];
             if(asteroidCollides(ast.x, ast.y, bullet.x, bullet.y, asteroidSize + bullet.radius)){
                 ship.bullets.splice(j, 1);
+                asteroids.splice(i, 1);
             }
         }
     }
@@ -370,7 +371,9 @@ function update(){
         newShip();
         console.log("-1 <3");
     }
-
+    if(asteroids.length == 0){
+        console.log("WIN!");
+    }
     drawAsteroids();
     drawBullets();
 }
