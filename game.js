@@ -154,6 +154,20 @@ function drawShip(){
     move();
 }
 
+function explosion(){
+    var explosion = ctx.createRadialGradient(ship.x, ship.y, 3, ship.x, ship.y, ship.radius * 1.6);
+    explosion.addColorStop(0, "white");
+    explosion.addColorStop(0.25, "yellow");
+    explosion.addColorStop(0.5, "orange");
+    explosion.addColorStop(0.75, "red");
+    explosion.addColorStop(1, "firebrick");
+
+    ctx.fillStyle = explosion;
+    ctx.beginPath();
+    ctx.arc(ship.x, ship.y, ship.radius * 1.6, 0, Math.PI *2, true);
+    ctx.fill();
+}
+
 // ===================== asteroids =====================
 
 function createMultipleAsteroids(astCount) {
@@ -234,7 +248,10 @@ function drawAsteroids() {
 
         moveAsteroids(ast);
 
-        if(asteroidInShip(ast.x, ast.y, asteroidSize + ship.radius)) console.log("Ded");
+        if(asteroidInShip(ast.x, ast.y, asteroidSize + ship.radius)) {
+            console.log("Ded");
+            explosion();
+        }
     }
 
 }

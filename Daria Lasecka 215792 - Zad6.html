@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Canvas animacja</title>
+    <style type="text/css">
+        #zad6_id {
+        border:1px solid black;
+        }
+    </style>
+    <script type="text/javascript">
+
+        var canvas;
+        var ctx;
+
+        function zad6() {
+            canvas = document.getElementById('zad6_id');
+
+            if (canvas.getContext) {
+                ctx = canvas.getContext('2d');
+                // kod …
+
+                var base = 40;
+                var spacing = 40;
+                for (var i=0; i<5; i++) {
+                    for (var j=0; j<5; j++) {
+                        ctx.beginPath();
+                        ctx.arc(spacing * i + base, spacing * j + base, 15, 0, Math.PI*2,true); // Outer circle
+                        ctx.stroke();
+                        if (i == j || 5-i-1 == j){
+                            var grd = ctx.createRadialGradient(spacing * i + base, spacing * j + base, 1, spacing * i + base, spacing * j + base, 20);
+                            grd.addColorStop(0, "white");
+                            grd.addColorStop(0.25, "yellow");
+                            grd.addColorStop(0.5, "orange");
+                            grd.addColorStop(0.75, "red");
+                            grd.addColorStop(1, "darkred");
+                            ctx.fillStyle = grd;
+                            ctx.fill();
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body onload="zad6();">
+<canvas id="zad6_id" width="240" height="240" ></canvas>
+</body>
+</html>
