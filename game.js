@@ -16,6 +16,8 @@ const ship_colors = ["white", "red", "lime", "yellow", "blue"];
 const ship_acceleration = 7;
 const friction = 0.5;
 const MAX_SPEED = 20;
+const MAX_EXPLOSION_TIME = FPS; //about 3 seconds
+const INVISIBILITY_FRAMES = FPS * 6;
 
 //asteroids
 const asteroidSpeed = 50;
@@ -23,19 +25,8 @@ const asteroidSize = 50;
 const maxSides = 25;
 const minSides = 5;
 
-var ship = {
-    x: width / 2,
-    y: height / 2,
-    radius: 15,
-    angle: 0, //in radians
-    speed: {
-        x: 0,
-        y: 0
-    },
-    accelerating: false,
-
-    color: 0 //na razie 0, ale później wybierze użythownik //odpowiada pozycji w liście ship_colors
-};
+var ship;
+newShip();
 
 var asteroids = [];
 createMultipleAsteroids(5);
@@ -48,6 +39,27 @@ function drawSpace(){
 }
 
 // ===================== ship =====================
+
+function newShip(){
+    ship = {
+        x: width / 2,
+        y: height / 2,
+        radius: 15,
+        angle: 0, //in radians
+        speed: {
+            x: 0,
+            y: 0
+        },
+        accelerating: false,
+        dead: false,
+        explosionTime: MAX_EXPLOSION_TIME,
+        invisibility: INVISIBILITY_FRAMES,
+
+        color: 0 //na razie 0, ale później wybierze użythownik //odpowiada pozycji w liście ship_colors
+    };
+
+}
+
 
 document.addEventListener("mousemove", rotateShip);
 
@@ -88,16 +100,16 @@ function move() {
 
 
     if(ship.accelerating) {
-            if(ship.speed.x < MAX_SPEED) ship.speed.x += ship_acceleration * Math.cos(ship.angle) / FPS;
-            if(ship.speed.y < MAX_SPEED) ship.speed.y += ship_acceleration * Math.sin(ship.angle) / FPS;
-            drawFire();
-        } else {
-            ship.speed.x -= friction * ship.speed.x / FPS;
-            ship.speed.y -= friction * ship.speed.y / FPS;
-        }
+        if(ship.speed.x < MAX_SPEED) ship.speed.x += ship_acceleration * Math.cos(ship.angle) / FPS;
+        if(ship.speed.y < MAX_SPEED) ship.speed.y += ship_acceleration * Math.sin(ship.angle) / FPS;
+        drawFire();
+    } else {
+        ship.speed.x -= friction * ship.speed.x / FPS;
+        ship.speed.y -= friction * ship.speed.y / FPS;
+    }
 
-        ship.x += ship.speed.x;
-        ship.y += ship.speed.y;
+    ship.x += ship.speed.x;
+    ship.y += ship.speed.y;
 }
 
 function drawFire() {
@@ -151,7 +163,11 @@ function drawShip(){
 
     ctx.restore();
 
-    move();
+    if(ship.dead) {
+        explosion();
+        ship.explosionTime--;
+    }
+    else move();
 }
 
 function explosion(){
@@ -248,9 +264,13 @@ function drawAsteroids() {
 
         moveAsteroids(ast);
 
-        if(asteroidInShip(ast.x, ast.y, asteroidSize + ship.radius)) {
-            console.log("Ded");
-            explosion();
+        //giving player a chance to run away when spawning in rock
+        if (ship.invisibility == 0) {//invisibility frames won't count for first live
+            if (asteroidInShip(ast.x, ast.y, asteroidSize + ship.radius)) {
+                ship.dead = true;
+            }
+        } else {
+            ship.invisibility--;
         }
     }
 
@@ -260,6 +280,11 @@ function drawAsteroids() {
 function update(){
     drawSpace();
     drawShip();
+     if(ship.explosionTime == 0){
+        newShip();
+        console.log("Teraz by się życie liczyło");
+    }
+
     drawAsteroids();
 }
 
