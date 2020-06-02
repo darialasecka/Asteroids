@@ -218,8 +218,8 @@ function asteroidCollides(x1, y1, x2, y2, spacing){
 }
 
 function newAsteroid(x, y, radius, lives) {
-    var minSides = (lives + 2) * 2;
-    var maxSides = Math.pow(lives + 2, 2);
+    var minSides = lives + 2;
+    var maxSides = Math.pow(minSides, 2);
     var asteroid = {
         x: x,
         y: y,
@@ -229,7 +229,7 @@ function newAsteroid(x, y, radius, lives) {
         },
         radius: radius,
         angle: Math.random() * Math.PI * 2,
-        sides: Math.floor(Math.random() * (maxSides - minSides)) + minSides,
+        sides: Math.floor(Math.random() * (maxSides - minSides) + minSides),
         offset: [],
         lives: lives
     };
@@ -259,7 +259,6 @@ function moveAsteroid(asteroid){
 function destroyAsteroid(index) {
     var asteroid = asteroids[index];
 
-    console.log(asteroid.lives);
     if(asteroid.lives != 1) {
         asteroids.push(newAsteroid(asteroid.x, asteroid.y, Math.ceil(asteroid.radius / 2), asteroid.lives - 1));
         asteroids.push(newAsteroid(asteroid.x, asteroid.y, Math.ceil(asteroid.radius / 2), asteroid.lives - 1));
