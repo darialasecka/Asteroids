@@ -277,6 +277,7 @@ function drawAsteroids() {
 
         moveAsteroid(ast);
 
+        //ship collision
         //giving player a chance to run away when spawning in rock
         if (ship.invisibility == 0) {//invisibility frames won't count for first live
             if (asteroidCollides(ast.x, ast.y, ship.x, ship.y, asteroidSize + ship.radius)) {
@@ -285,6 +286,15 @@ function drawAsteroids() {
         } else {
             ship.invisibility--;
         }
+        //bullets collision
+        for(var j = 0; j < ship.bullets.length; j++){
+            var bullet = ship.bullets[j];
+            if(asteroidCollides(ast.x, ast.y, bullet.x, bullet.y, asteroidSize + bullet.radius)){
+                ship.bullets.splice(j, 1);
+            }
+        }
+
+
     }
 }
 
@@ -292,7 +302,7 @@ function drawAsteroids() {
 
 function newBullet(x, y){
     bullet = {
-        x: x + ship.radius * Math.cos(ship.angle),
+        x: x + ship.radius * Math.cos(ship.angle), //start from ship front
         y: y + ship.radius * Math.sin(ship.angle),
         radius: 2.5,
         speed: {
@@ -345,8 +355,6 @@ function drawBullets(){
         ctx.restore();
 
         moveBullet(bullet);
-
-        //bullet collision with asteroid - here?
     }
 }
 
