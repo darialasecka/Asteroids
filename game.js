@@ -9,8 +9,6 @@ const height = canvas.height;
 
 const FPS = 60;
 
-setInterval(update, 1000/FPS);
-
 //ship
 const ship_colors = ["white", "red", "lime", "yellow", "blue"];
 const ship_acceleration = 7;
@@ -22,22 +20,27 @@ const INVISIBILITY_FRAMES = 15;
 const STARTING_LIVES = 3;
 
 var ship;
-newShip(STARTING_LIVES, 0);
 
 //asteroids
+const pointsTable = [100, 50, 20];
 const asteroidSpeed = 50;
 const asteroidSize = 30;
 const avgSides = 15;
 const avgOffset = 15;
 const MAX_AST_LIVES = 3;
+const BASE_AST_NUM = 4;
 
 var asteroids = [];
-createMultipleAsteroids(5);
 
 //bullets
 const MAX_BULLETS = 4;
 const bulletSpeed = 17;
 const MAX_DISTANCE = 420;
+
+//game
+const LEVEL_TIME = 30;
+var points = 0;
+var pointsToNextLive = 0;
 
 // ===================== space =====================
 
@@ -217,18 +220,20 @@ function asteroidCollides(x1, y1, x2, y2, spacing){
 }
 
 function newAsteroid(x, y, radius, lives) {
+    var levelMultiplayer = 1 + 0.1 * level;
     var asteroid = {
         x: x,
         y: y,
         speed: {
-            x: Math.random() * asteroidSpeed / FPS * (Math.random() < 0.5 ? 1 : -1),
-            y: Math.random() * asteroidSpeed / FPS * (Math.random() < 0.5 ? 1 : -1)
+            x: Math.random() * asteroidSpeed / FPS * (Math.random() < 0.5 ? 1 : -1) * levelMultiplayer,
+            y: Math.random() * asteroidSpeed / FPS * (Math.random() < 0.5 ? 1 : -1) * levelMultiplayer
         },
         radius: radius,
         angle: Math.random() * Math.PI * 2,
         sides: Math.floor(Math.random() * avgSides + avgSides / 2),
         offset: [],
-        lives: lives
+        lives: lives,
+        points: pointsTable[lives - 1]
     };
     for(var i = 0; i < asteroid.sides; i++){
         asteroid.offset.push(Math.floor(Math.random() * avgOffset + avgOffset / 2));
@@ -260,6 +265,13 @@ function destroyAsteroid(index) {
         asteroids.push(newAsteroid(asteroid.x, asteroid.y, Math.ceil(asteroid.radius / 3), asteroid.lives - 1));
         asteroids.push(newAsteroid(asteroid.x, asteroid.y, Math.ceil(asteroid.radius / 2), asteroid.lives - 1));
     }
+    points += asteroid.points;
+    pointsToNextLive += asteroid.points;
+    console.log(points);
+    if(pointsToNextLive >= 10000){
+        pointsToNextLive = 0;
+        ship.lives++;
+    }
     asteroids.splice(index, 1);
 }
 
@@ -289,7 +301,6 @@ function drawAsteroids() {
         //ship collision
         //giving player a chance to run away when spawning in rock
         if (ship.invisibility == 0 && !ship.exploded) {//invisibility frames won't count for first live
-            console.log(ship.invisibility, ship.exploded);
             if (asteroidCollides(ast.x, ast.y, ship.x, ship.y, asteroidSize + ship.radius)) {
                 ship.exploded = true;
                 destroyAsteroid(i);
@@ -400,13 +411,43 @@ function drawLives(){
     }
 }
 
+function showPoints(){
+    ctx.save();
+    //ctx.translate(15 + (points.toString().length * 3), 30);
+    ctx.fillStyle = "white";
+    ctx.font = "20px Arial Narrow";
+    ctx.textAlign = 'left';
+    ctx.fillText(points, 10, 30);
+    ctx.restore();
+}
 
+// ===================== GAME =====================
+
+var level = 1;
+var levelAlpha = 1.0;
+var interval;
+
+function newGame(){
+    newShip(STARTING_LIVES, 0);
+    createMultipleAsteroids(BASE_AST_NUM + level);
+    if(!interval) interval = setInterval(update, 1000/FPS);
+    //showLevel();
+
+}
+
+function showLevel(){
+    ctx.fillStyle = "rgba(255, 255, 255, " + levelAlpha + ")";
+    ctx.font = "40px Arial";
+    ctx.textAlign = 'center';
+    ctx.fillText("Level " + level, width/2, height / 2);
+}
 
 function update(){
     drawSpace();
     drawAsteroids();
     drawBullets();
     drawLives();
+    showPoints();
 
     // ship blinks if have invisibility_frames
     var invisible = ship.invisibility % 2 == 1;
@@ -438,11 +479,17 @@ function update(){
     }
     // win
     if(asteroids.length == 0){
-        console.log("WIN!");
+        levelAlpha = 1.0;
+        level++;
+        newGame();
     }
 
-
-
-
+    //show level
+    if(levelAlpha >= 0){
+        showLevel();
+        levelAlpha -= (1.0 / LEVEL_TIME);
+    }
 }
+
+newGame();
 
