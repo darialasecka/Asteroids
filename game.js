@@ -18,16 +18,17 @@ const friction = 0.5;
 const MAX_SPEED = 17;
 const MAX_EXPLOSION_TIME = FPS;
 const INVISIBILITY_FRAMES = FPS * 6;
+const STARTING_LIVES = 3;
 
 var ship;
-newShip();
+newShip(STARTING_LIVES);
 
 //asteroids
 const asteroidSpeed = 50;
-const asteroidSize = 50;
-//const maxSides = 25;
-//const minSides = 5;
-const MAX_LIVES = 3;
+const asteroidSize = 30;
+const avgSides = 15;
+const avgOffset = 15;
+const MAX_AST_LIVES = 3;
 
 var asteroids = [];
 createMultipleAsteroids(5);
@@ -46,7 +47,7 @@ function drawSpace(){
 
 // ===================== ship =====================
 
-function newShip(){
+function newShip(lives){
     ship = {
         x: width / 2,
         y: height / 2,
@@ -62,6 +63,7 @@ function newShip(){
         invisibility: INVISIBILITY_FRAMES,
         canShoot: true,
         bullets: [],
+        lives: lives,
 
         color: 0 //na razie 0, ale później wybierze użythownik //odpowiada pozycji w liście ship_colors
     };
@@ -206,7 +208,7 @@ function createMultipleAsteroids(astCount) {
             var x = Math.random() * width;
             var y = Math.random() * height;
         } while (asteroidCollides(x, y, ship.x, ship.y, asteroidSize * 3 + ship.radius)); //asteroids won't spawn in ship and too close to it
-        asteroids.push(newAsteroid(x, y, asteroidSize, MAX_LIVES));
+        asteroids.push(newAsteroid(x, y, asteroidSize, MAX_AST_LIVES));
     }
 }
 
@@ -218,8 +220,6 @@ function asteroidCollides(x1, y1, x2, y2, spacing){
 }
 
 function newAsteroid(x, y, radius, lives) {
-    var minSides = lives + 2;
-    var maxSides = Math.pow(minSides, 2);
     var asteroid = {
         x: x,
         y: y,
@@ -229,12 +229,12 @@ function newAsteroid(x, y, radius, lives) {
         },
         radius: radius,
         angle: Math.random() * Math.PI * 2,
-        sides: Math.floor(Math.random() * (maxSides - minSides) + minSides),
+        sides: Math.floor(Math.random() * avgSides + avgSides / 2),
         offset: [],
         lives: lives
     };
     for(var i = 0; i < asteroid.sides; i++){
-        asteroid.offset.push(Math.floor(Math.random() * 20) - 10);
+        asteroid.offset.push(Math.floor(Math.random() * avgOffset + avgOffset / 2));
     }
     return asteroid;
 }
@@ -260,7 +260,7 @@ function destroyAsteroid(index) {
     var asteroid = asteroids[index];
 
     if(asteroid.lives != 1) {
-        asteroids.push(newAsteroid(asteroid.x, asteroid.y, Math.ceil(asteroid.radius / 2), asteroid.lives - 1));
+        asteroids.push(newAsteroid(asteroid.x, asteroid.y, Math.ceil(asteroid.radius / 3), asteroid.lives - 1));
         asteroids.push(newAsteroid(asteroid.x, asteroid.y, Math.ceil(asteroid.radius / 2), asteroid.lives - 1));
     }
     asteroids.splice(index, 1);
@@ -294,7 +294,6 @@ function drawAsteroids() {
         if (ship.invisibility == 0) {//invisibility frames won't count for first live
             if (asteroidCollides(ast.x, ast.y, ship.x, ship.y, asteroidSize + ship.radius)) {
                 ship.dead = true;
-                destroyAsteroid(i);
             }
         } else {
             ship.invisibility--;
@@ -306,6 +305,7 @@ function drawAsteroids() {
             if(asteroidCollides(ast.x, ast.y, bullet.x, bullet.y, asteroidSize + bullet.radius)){
                 ship.bullets.splice(j, 1);
                 destroyAsteroid(i);
+                break; //if asteroid breaks theres no point to check other buletts
             }
         }
     }
@@ -377,18 +377,48 @@ function drawBullets(){
     }
 }
 
+// ===================== UI =====================
+
+function drawLives(){
+    for(var i = 0; i < ship.lives; i++){
+        ctx.save();
+
+        ctx.translate(15 + (ship.radius + 5) * i, 50);
+        ctx.rotate(-90 * Math.PI / 180);
+
+        ctx.strokeStyle = ship_colors[ship.color];
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        // top point
+        ctx.moveTo(ship.radius / 2, 0);
+        //right side
+        ctx.lineTo(-ship.radius / 2, ship.radius / 2);
+        // bottom
+        ctx.lineTo(-ship.radius / 2, -ship.radius / 2);
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.restore();
+    }
+}
+
+
 
 function update(){
     drawSpace();
     drawShip();
      if(ship.explosionTime == 0){
-        newShip();
-        console.log("-1 <3");
+        newShip(--ship.lives);
+        if(ship.lives < 0){
+            console.log("GAME OVER");
+            newShip(STARTING_LIVES);
+        }
     }
     if(asteroids.length == 0){
         console.log("WIN!");
     }
     drawAsteroids();
     drawBullets();
+    drawLives();
 }
 
