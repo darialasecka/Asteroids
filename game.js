@@ -17,11 +17,12 @@ const ship_acceleration = 7;
 const friction = 0.5;
 const MAX_SPEED = 17;
 const MAX_EXPLOSION_TIME = FPS;
-const INVISIBILITY_FRAMES = FPS * 6;
+const BLINK_TIME = 6;
+const INVISIBILITY_FRAMES = 15;
 const STARTING_LIVES = 3;
 
 var ship;
-newShip(STARTING_LIVES);
+newShip(STARTING_LIVES, 0);
 
 //asteroids
 const asteroidSpeed = 50;
@@ -47,7 +48,7 @@ function drawSpace(){
 
 // ===================== ship =====================
 
-function newShip(lives){
+function newShip(lives, invisibility){
     ship = {
         x: width / 2,
         y: height / 2,
@@ -58,11 +59,13 @@ function newShip(lives){
             y: 0
         },
         accelerating: false,
-        dead: false,
+        exploded: false,
         explosionTime: MAX_EXPLOSION_TIME,
         invisibility: INVISIBILITY_FRAMES,
         canShoot: true,
         bullets: [],
+        blinkTime: BLINK_TIME,
+        invisibility: invisibility,
         lives: lives,
 
         color: 0 //na razie 0, ale później wybierze użythownik //odpowiada pozycji w liście ship_colors
@@ -84,7 +87,7 @@ function speedUpAndShoot(e){
     if(e.key == "ArrowUp" || e.key == "w"){ //space is temporart for tests
         ship.accelerating = true;
     }
-    if(e.key == " " && ship.canShoot && !ship.dead){
+    if(e.key == " " && ship.canShoot && !ship.exploded){
         shoot();
     }
 }
@@ -177,12 +180,6 @@ function drawShip(){
     ctx.stroke();
 
     ctx.restore();
-
-    if(ship.dead) {
-        explosion();
-        ship.explosionTime--;
-    }
-    else move();
 }
 
 function explosion(){
@@ -291,12 +288,13 @@ function drawAsteroids() {
 
         //ship collision
         //giving player a chance to run away when spawning in rock
-        if (ship.invisibility == 0) {//invisibility frames won't count for first live
+        if (ship.invisibility == 0 && !ship.exploded) {//invisibility frames won't count for first live
+            console.log(ship.invisibility, ship.exploded);
             if (asteroidCollides(ast.x, ast.y, ship.x, ship.y, asteroidSize + ship.radius)) {
-                ship.dead = true;
+                ship.exploded = true;
+                destroyAsteroid(i);
+                break;
             }
-        } else {
-            ship.invisibility--;
         }
 
         //bullets collision
@@ -406,19 +404,45 @@ function drawLives(){
 
 function update(){
     drawSpace();
-    drawShip();
-     if(ship.explosionTime == 0){
-        newShip(--ship.lives);
-        if(ship.lives < 0){
-            console.log("GAME OVER");
-            newShip(STARTING_LIVES);
-        }
-    }
-    if(asteroids.length == 0){
-        console.log("WIN!");
-    }
     drawAsteroids();
     drawBullets();
     drawLives();
+
+    // ship blinks if have invisibility_frames
+    var invisible = ship.invisibility % 2 == 1;
+
+    if(!invisible)  drawShip();
+
+    if (ship.invisibility > 0) {
+        ship.blinkTime--;
+        if (ship.blinkTime == 0) {
+            ship.invisibility--;
+            ship.blinkTime = BLINK_TIME;
+        }
+    }
+
+    // moves ship or shows explosion
+    if(ship.exploded) {
+        explosion();
+        ship.explosionTime--;
+    }
+    else move();
+
+    // new life or game over
+     if(ship.explosionTime == 0){
+        newShip(--ship.lives, INVISIBILITY_FRAMES);
+        if(ship.lives < 0){
+            console.log("GAME OVER");
+            newShip(STARTING_LIVES, 0);
+        }
+    }
+    // win
+    if(asteroids.length == 0){
+        console.log("WIN!");
+    }
+
+
+
+
 }
 
