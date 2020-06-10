@@ -43,6 +43,8 @@ const LEVEL_TIME = 30;
 var points = 0;
 var pointsToNextLive = 0;
 
+var highScore = localStorage.getItem("highScore");
+
 //menu
 var inMenu = true;
 var inOptions = false;
@@ -401,6 +403,11 @@ function destroyAsteroid(index) {
         pointsToNextLive -= 10000;
         ship.lives++;
     }
+    if(points >= highScore) {
+        highScore = points;
+        localStorage.setItem("highScore", highScore);
+    }
+
     asteroids.splice(index, 1);
 }
 
@@ -550,6 +557,16 @@ function showPoints(){
     ctx.restore();
 }
 
+function showHighScore(){
+    ctx.save();
+    ctx.translate(width / 2, 30);
+    ctx.fillStyle = "white";
+    ctx.font = "bold 25px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("HIGH SCORE: " + highScore, 0, 0);
+    ctx.restore();
+}
+
 // ===================== GAME =====================
 
 var level = 1;
@@ -559,6 +576,11 @@ var interval;
 function newGame(){
     newShip(STARTING_LIVES, 0);
     createMultipleAsteroids(BASE_AST_NUM + level);
+
+    var score = localStorage.getItem("highScore");
+    if(!score) highScore = 0;
+    else highScore = score;
+
     if(!interval) interval = setInterval(update, 1000/FPS);
     //showLevel();
 }
@@ -576,6 +598,7 @@ function update(){
     drawBullets();
     drawLives();
     showPoints();
+    showHighScore();
 
     // ship blinks if have invisibility_frames
     var invisible = ship.invisibility % 2 == 1;
@@ -626,8 +649,6 @@ function update(){
 function drawMainMenu() {
     drawSpace();
 
-    newShip(STARTING_LIVES, 0); //for menu purposes
-
     ctx.save();
     ctx.translate(width / 2, 80);
     ctx.fillStyle = "white";
@@ -672,8 +693,6 @@ function drawMainMenu() {
     ctx.fillText(option, 0, 0);
     ctx.restore();
 
-
-    //TODO: finish credits
     ctx.save();
     ctx.translate(width / 2, height / 2 + 180);
     ctx.fillStyle = "white";
@@ -703,7 +722,7 @@ function drawOptions(){
     ctx.fillStyle = "white";
     ctx.font = "20px Courier";
     ctx.textAlign = 'center';
-    ctx.fillText("Choose color of your ship", 0, 0);
+    ctx.fillText("Choose color of your ship,", 0, 0);
     ctx.restore();
 
     ctx.save();
@@ -711,9 +730,10 @@ function drawOptions(){
     ctx.fillStyle = "white";
     ctx.font = "20px Courier";
     ctx.textAlign = 'center';
-    ctx.fillText("and your buletts:", 0, 0);
+    ctx.fillText("buletts and lives:", 0, 0);
     ctx.restore();
 
+    newShip(0, 0); //for showing color
     drawShip();
 
     ctx.save();
@@ -731,7 +751,7 @@ function drawOptions(){
     ctx.save();
     ctx.translate(width / 2, height / 2 + 120);
     ctx.fillStyle = "white";
-    ctx.font = "20px Courier";
+    ctx.font = "25px Courier";
     ctx.textAlign = 'center';
     option = menuOptions[1];
     if(menuPosition == 1){
@@ -741,17 +761,18 @@ function drawOptions(){
     ctx.restore();
 }
 
-//TODO: high score
-
 function drawInformations() {
     drawSpace();
+    showHighScore();
+
+    newShip(STARTING_LIVES, 0); //for UI instructions
 
     showPoints();
     drawLives();
 
     ctx.save();
     ctx.translate(80, 25);
-    ctx.fillStyle = "white";
+    ctx.fillStyle = "silver";
     ctx.font = "15px Courier";
     ctx.textAlign = 'left';
     ctx.fillText("<-- your points", 0, 0);
@@ -759,13 +780,20 @@ function drawInformations() {
 
     ctx.save();
     ctx.translate(80, 55);
-    ctx.fillStyle = "white";
+    ctx.fillStyle = "silver";
     ctx.font = "15px Courier";
     ctx.textAlign = 'left';
     ctx.fillText("<-- your lives", 0, 0);
     ctx.restore();
 
-    //TODO: PURPOUSE OF GAME AND INSTRUCTIONS
+    ctx.save();
+    ctx.translate(width - 20, 25);
+    ctx.fillStyle = "silver";
+    ctx.font = "15px Courier";
+    ctx.textAlign = 'right';
+    ctx.fillText("<-- local high score", 0, 0);
+    ctx.restore();
+
     ctx.save();
     ctx.translate(width / 2, 120);
     ctx.fillStyle = "white";
@@ -779,7 +807,7 @@ function drawInformations() {
     ctx.fillStyle = "white";
     ctx.font = "15px Courier";
     ctx.textAlign = 'center';
-    ctx.fillText("Mouse - rotating", 0, 0);
+    ctx.fillText("Mouse - rotate", 0, 0);
     ctx.restore();
 
     ctx.save();
@@ -787,7 +815,7 @@ function drawInformations() {
     ctx.fillStyle = "white";
     ctx.font = "15px Courier";
     ctx.textAlign = 'center';
-    ctx.fillText("Spacebar - shooting", 0, 0);
+    ctx.fillText("Spacebar - shoot", 0, 0);
     ctx.restore();
 
     ctx.save();
@@ -795,7 +823,7 @@ function drawInformations() {
     ctx.fillStyle = "white";
     ctx.font = "15px Courier";
     ctx.textAlign = 'center';
-    ctx.fillText("W / Arrow Up - accelerating", 0, 0);
+    ctx.fillText("W / Arrow Up - accelerate", 0, 0);
     ctx.restore();
 
     ctx.save();

@@ -4,13 +4,19 @@
     <meta charset="utf-8"/>
     <title>Asteroids</title>
     <style>
-        body {
+        body{
             margin: 0;padding: 0;
-            height: 100vh;
+            align-items: center;
+            background-color: dimgray;
+            text-align: center;
+            font-family: Courier;
+            color: white;
+        }
+        div {
+            height: 90vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: dimgray;
         }
         canvas {
             border: 1px solid white;
@@ -18,7 +24,10 @@
     </style>
 </head>
 <body>
-    <canvas></canvas>
-    <script src="game.js"></script>
+    <div>
+        <canvas></canvas>
+        <script src="game.js"></script>
+    </div>
+    <p> Use Arrows and Enter to navigate the menus.</p>
 </body>
 </html>
