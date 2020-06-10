@@ -47,6 +47,12 @@ var pointsToNextLive = 0;
 var inMenu = true;
 var inOptions = false;
 var inInformations = false;
+var inGameOver = false;
+
+var menu = ["New Game", "Options", "Controls & UI", "Credits"];
+var menuOptions = ["Color", "Exit"];
+var gameOverMenu = ["New Game", "Return to Main Menu"];
+var menuPosition = 0;
 
 // ===================== space =====================
 
@@ -112,8 +118,13 @@ function speedUpAndShoot(e){
                     if(menuPosition > menuOptions.length - 1) menuPosition = 0;
                     else if (menuPosition < 0) menuPosition = menuOptions.length - 1;
                     drawOptions();
-                } else if( inInformations) {
+                } else if(inInformations) {
                     //do nothing
+                } else if (inGameOver) {
+                    menuPosition --;
+                    if(menuPosition > gameOverMenu.length - 1) menuPosition = 0;
+                    else if (menuPosition < 0) menuPosition = gameOverMenu.length - 1;
+                    drawGameOverMenu();
                 } else {
                     menuPosition --;
                     if(menuPosition > menu.length - 1) menuPosition = 0;
@@ -130,6 +141,11 @@ function speedUpAndShoot(e){
                     drawOptions();
                 } else if( inInformations) {
                     //do nothing
+                } else if (inGameOver) {
+                    menuPosition ++;
+                    if(menuPosition > gameOverMenu.length - 1) menuPosition = 0;
+                    else if (menuPosition < 0) menuPosition = gameOverMenu.length - 1;
+                    drawGameOverMenu();
                 } else {
                     menuPosition ++;
                     if(menuPosition > menu.length - 1) menuPosition = 0;
@@ -147,6 +163,21 @@ function speedUpAndShoot(e){
                 } else if (inInformations) {
                     inInformations = false;
                     drawMainMenu();
+                } else if (inGameOver){
+                    switch(menuPosition) {
+                        case 0:
+                            console.log("game");
+                            inMenu = false;
+                            inGameOver = false;
+                            newGame();
+                            break;
+                        case 1:
+                            console.log("menu");
+                            inGameOver = false;
+                            menuPosition = 0;
+                            drawMainMenu();
+                            break;
+                    }
                 } else {
                     switch(menuPosition) {
                         case 0:
@@ -530,7 +561,6 @@ function newGame(){
     createMultipleAsteroids(BASE_AST_NUM + level);
     if(!interval) interval = setInterval(update, 1000/FPS);
     //showLevel();
-
 }
 
 function showLevel(){
@@ -571,8 +601,10 @@ function update(){
      if(ship.explosionTime == 0){
         newShip(--ship.lives, INVISIBILITY_FRAMES);
         if(ship.lives < 0){
-            console.log("GAME OVER");
-            newShip(STARTING_LIVES, 0);
+            //console.log("GAME OVER");
+            inGameOver = true;
+            inMenu = true;
+            drawGameOverMenu();
         }
     }
     // win
@@ -589,14 +621,7 @@ function update(){
     }
 }
 
-//newGame();
-
 // ===================== MENU =====================
-
-var menu = ["New Game", "Options", "Controls & UI", "Credits"];
-var menuOptions = ["Color", "Exit"];
-
-var menuPosition = 3; //changing for tests - default 0
 
 function drawMainMenu() {
     drawSpace();
@@ -851,6 +876,43 @@ function drawCredits(){
     ctx.restore();
 }
 
+function drawGameOverMenu(){
+    clearInterval(interval);
+    interval = false;
+    drawSpace();
+
+    ctx.save();
+    ctx.translate(width / 2, 50);
+    ctx.fillStyle = "white";
+    ctx.font = "bold 50px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("GAME OVER", 0, 30);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, height / 2);
+    ctx.fillStyle = "white";
+    ctx.font = "25px Courier";
+    ctx.textAlign = 'center';
+    option = gameOverMenu[0];
+    if(menuPosition == 0){
+        option = "> " + option + " <";
+    }
+    ctx.fillText(option, 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, height / 2 + 60);
+    ctx.fillStyle = "white";
+    ctx.font = "25px Courier";
+    ctx.textAlign = 'center';
+    option = gameOverMenu[1];
+    if(menuPosition == 1){
+        option = "> " + option + " <";
+    }
+    ctx.fillText(option, 0, 0);
+    ctx.restore();
+}
 
 
 drawMainMenu();
