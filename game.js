@@ -11,6 +11,7 @@ const FPS = 60;
 
 //ship
 const ship_colors = ["white", "red", "lime", "yellow", "blue"];
+var choosen_color = 0;
 const ship_acceleration = 7;
 const friction = 0.5;
 const MAX_SPEED = 17;
@@ -44,6 +45,7 @@ var pointsToNextLive = 0;
 
 //menu
 var inMenu = true;
+var inOptions = false;
 
 // ===================== space =====================
 
@@ -59,7 +61,7 @@ function newShip(lives, invisibility){
         x: width / 2,
         y: height / 2,
         radius: 15,
-        angle: 0, //in radians
+        angle: -Math.PI/2, //in radians
         speed: {
             x: 0,
             y: 0
@@ -74,7 +76,7 @@ function newShip(lives, invisibility){
         invisibility: invisibility,
         lives: lives,
 
-        color: 0 //na razie 0, ale później wybierze użythownik //odpowiada pozycji w liście ship_colors
+        color: choosen_color
     };
 }
 
@@ -101,23 +103,74 @@ function speedUpAndShoot(e){
         }
 
     } else {
-        if(e.key == "ArrowUp") {
-            menuPosition ++;
-            if(menuPosition > menuOptions.length - 1) menuPosition = 0;
-            else if (menuPosition < 0) menuPosition = menuOptions.length - 1;
-            drawMainMenu();
-        }
-        if(e.key == "ArrowDown")  {
-            menuPosition --;
-            if(menuPosition > menuOptions.length - 1) menuPosition = 0;
-            else if (menuPosition < 0) menuPosition = menuOptions.length - 1;
-            drawMainMenu();
-        }
-        if(e.key == "Enter" && menuPosition == 0) {
-            inMenu = false;
-            newGame();
-        }
+        // menu
+        switch(e.key){
+            case "ArrowUp":
+                if(!inOptions) {
+                    menuPosition ++;
+                    if(menuPosition > menu.length - 1) menuPosition = 0;
+                    else if (menuPosition < 0) menuPosition = menu.length - 1;
+                    drawMainMenu();
+                }
+                else {
+                    menuPosition ++;
+                    if(menuPosition > menuOptions.length - 1) menuPosition = 0;
+                    else if (menuPosition < 0) menuPosition = menuOptions.length - 1;
+                    drawOptions();
+                }
+                break;
 
+            case "ArrowDown":
+                if(!inOptions) {
+                    menuPosition --;
+                    if(menuPosition > menu.length - 1) menuPosition = 0;
+                    else if (menuPosition < 0) menuPosition = menu.length - 1;
+                    drawMainMenu();
+                } else {
+                    menuPosition --;
+                    if(menuPosition > menuOptions.length - 1) menuPosition = 0;
+                    else if (menuPosition < 0) menuPosition = menuOptions.length - 1;
+                    drawOptions();
+                }
+                break;
+
+            case "Enter":
+                if(!inOptions) {
+                    switch(menuPosition) {
+                        case 0:
+                            inMenu = false;
+                            newGame();
+                            break;
+                        case 1:
+                            inOptions = true;
+                            menuPosition = 0;
+                            drawOptions();
+                            break;
+                    }
+                } else {
+                    menuPosition = 0;
+                    inOptions = false;
+                    drawMainMenu();
+                }
+                break;
+            case "ArrowRight":
+                if(inOptions && menuPosition == 0){
+                    choosen_color ++;
+                    if(choosen_color > ship_colors.length - 1) choosen_color = 0;
+                    else if (choosen_color < 0) choosen_color = ship_colors.length - 1;
+                    drawOptions();
+                }
+                break;
+            case "ArrowLeft":
+                if(inOptions && menuPosition == 0){
+                    choosen_color --;
+                    if(choosen_color > ship_colors.length - 1) choosen_color = 0;
+                    else if (choosen_color < 0) choosen_color = ship_colors.length - 1;
+                    drawOptions();
+                }
+                break;
+
+        }
         console.log(menuPosition);
     }
 }
@@ -524,11 +577,51 @@ function update(){
 
 // ===================== MENU =====================
 
-var menuOptions = ["New Game", "Options"];
+var menu = ["New Game", "Options"];
+var menuOptions = ["Color", "Exit"];
 
-var menuPosition = 0;
+var menuPosition = 1;
 
 function drawMainMenu() {
+    drawSpace();
+
+    ctx.save();
+    ctx.translate(width / 2, 80);
+    ctx.fillStyle = "white";
+    ctx.font = "bold 50px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("ASTEROIDS", 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, height / 2);
+    ctx.fillStyle = "white";
+    ctx.font = "25px Courier";
+    ctx.textAlign = 'center';
+    var option = menu[0];
+    if(menuPosition == 0){
+        option = "> " + option + " <";
+    }
+    ctx.fillText(option, 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, height / 2 + 60);
+    ctx.fillStyle = "white";
+    ctx.font = "25px Courier";
+    ctx.textAlign = 'center';
+    option = menu[1];
+    if(menuPosition == 1){
+        option = "> " + option + " <";
+    }
+    ctx.fillText(option, 0, 0);
+    ctx.restore();
+
+    //TODO: add informations about UI
+    //TODO: add credits
+}
+
+function drawOptions(){
     drawSpace();
 
     ctx.save();
@@ -536,34 +629,53 @@ function drawMainMenu() {
     ctx.fillStyle = "white";
     ctx.font = "bold 50px Courier";
     ctx.textAlign = 'center';
-    ctx.fillText("ASTEROIDS", 10, 30);
+    ctx.fillText("OPTIONS", 0, 30);
     ctx.restore();
 
     ctx.save();
-    ctx.translate(width / 2, height / 2 - 30);
+    ctx.translate(width / 2, height / 2 - 70);
     ctx.fillStyle = "white";
-    ctx.font = "25px Courier";
+    ctx.font = "20px Courier";
     ctx.textAlign = 'center';
-    var option = menuOptions[0];
-    if(menuPosition == 0){
-        option = "> " + option + " <";
-    }
-    ctx.fillText(option, 10, 30);
+    ctx.fillText("Choose color of your ship", 0, 0);
     ctx.restore();
 
     ctx.save();
-    ctx.translate(width / 2, height / 2 + 30);
+    ctx.translate(width / 2, height / 2 - 45);
     ctx.fillStyle = "white";
-    ctx.font = "25px Courier";
+    ctx.font = "20px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("and your buletts:", 0, 0);
+    ctx.restore();
+
+    newShip(0, 0); // exists just for colour selections
+    drawShip();
+
+    ctx.save();
+    ctx.translate(width / 2, height / 2 + 70);
+    ctx.fillStyle = ship_colors[choosen_color];
+    ctx.font = "20px Courier";
+    ctx.textAlign = 'center';
+    var option = ship_colors[choosen_color];
+    if(menuPosition == 0){
+        option = "< " + option + " >"
+    }
+    ctx.fillText(option, 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, height / 2 + 120);
+    ctx.fillStyle = "white";
+    ctx.font = "20px Courier";
     ctx.textAlign = 'center';
     option = menuOptions[1];
     if(menuPosition == 1){
         option = "> " + option + " <";
     }
-    ctx.fillText(option, 10, 30);
+    ctx.fillText(option, 0, 0);
     ctx.restore();
 
-
+    //TODO: Add exit button
 }
 
 drawMainMenu();
