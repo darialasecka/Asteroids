@@ -42,6 +42,9 @@ const LEVEL_TIME = 30;
 var points = 0;
 var pointsToNextLive = 0;
 
+//menu
+var inMenu = true;
+
 // ===================== space =====================
 
 function drawSpace(){
@@ -79,30 +82,56 @@ function newShip(lives, invisibility){
 document.addEventListener("mousemove", rotateShip);
 
 function rotateShip(e){
+    if(!inMenu){
     var x = e.clientX - canvas.offsetLeft - ship.x;
-    var y = e.clientY - canvas.offsetTop - ship.y;
-    ship.angle = Math.atan2(y, x)
+        var y = e.clientY - canvas.offsetTop - ship.y;
+        ship.angle = Math.atan2(y, x)
+    }
 }
 
 document.addEventListener("keydown", speedUpAndShoot);
 
 function speedUpAndShoot(e){
-    if(e.key == "ArrowUp" || e.key == "w"){ //space is temporart for tests
-        ship.accelerating = true;
-    }
-    if(e.key == " " && ship.canShoot && !ship.exploded){
-        shoot();
+    if(!inMenu) {
+        if(e.key == "ArrowUp" || e.key == "w"){ //space is temporart for tests
+            ship.accelerating = true;
+        }
+        if(e.key == " " && ship.canShoot && !ship.exploded){
+            shoot();
+        }
+
+    } else {
+        if(e.key == "ArrowUp") {
+            menuPosition ++;
+            if(menuPosition > menuOptions.length - 1) menuPosition = 0;
+            else if (menuPosition < 0) menuPosition = menuOptions.length - 1;
+            drawMainMenu();
+        }
+        if(e.key == "ArrowDown")  {
+            menuPosition --;
+            if(menuPosition > menuOptions.length - 1) menuPosition = 0;
+            else if (menuPosition < 0) menuPosition = menuOptions.length - 1;
+            drawMainMenu();
+        }
+        if(e.key == "Enter" && menuPosition == 0) {
+            inMenu = false;
+            newGame();
+        }
+
+        console.log(menuPosition);
     }
 }
 
 document.addEventListener("keyup", slowDown);
 
 function slowDown(e){
-    if(e.key == "ArrowUp" || e.key == "w") { //chcemy, żeby spowalniał tylko jak przestajemy się ruszać
-        ship.accelerating = false;
-    }
-    if( e.key == " "){
-        ship.canShoot = true;
+    if(!inMenu) {
+        if(e.key == "ArrowUp" || e.key == "w") { //chcemy, żeby spowalniał tylko jak przestajemy się ruszać
+            ship.accelerating = false;
+        }
+        if( e.key == " "){
+            ship.canShoot = true;
+        }
     }
 }
 
@@ -415,7 +444,7 @@ function showPoints(){
     ctx.save();
     //ctx.translate(15 + (points.toString().length * 3), 30);
     ctx.fillStyle = "white";
-    ctx.font = "20px Arial Narrow";
+    ctx.font = "20px Courier";
     ctx.textAlign = 'left';
     ctx.fillText(points, 10, 30);
     ctx.restore();
@@ -491,5 +520,50 @@ function update(){
     }
 }
 
-newGame();
+//newGame();
 
+// ===================== MENU =====================
+
+var menuOptions = ["New Game", "Options"];
+
+var menuPosition = 0;
+
+function drawMainMenu() {
+    drawSpace();
+
+    ctx.save();
+    ctx.translate(width / 2, 50);
+    ctx.fillStyle = "white";
+    ctx.font = "bold 50px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("ASTEROIDS", 10, 30);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, height / 2 - 30);
+    ctx.fillStyle = "white";
+    ctx.font = "25px Courier";
+    ctx.textAlign = 'center';
+    var option = menuOptions[0];
+    if(menuPosition == 0){
+        option = "> " + option + " <";
+    }
+    ctx.fillText(option, 10, 30);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, height / 2 + 30);
+    ctx.fillStyle = "white";
+    ctx.font = "25px Courier";
+    ctx.textAlign = 'center';
+    option = menuOptions[1];
+    if(menuPosition == 1){
+        option = "> " + option + " <";
+    }
+    ctx.fillText(option, 10, 30);
+    ctx.restore();
+
+
+}
+
+drawMainMenu();
