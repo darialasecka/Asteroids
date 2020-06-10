@@ -140,11 +140,13 @@ function speedUpAndShoot(e){
 
             case "Enter":
                 if(inOptions) {
-                    menuPosition = 0;
-                    inOptions = false;
-                    drawMainMenu();
+                    if(menuPosition == 1){
+                        inOptions = false;
+                        drawMainMenu();
+                    }
                 } else if (inInformations) {
-                    //do nothing
+                    inInformations = false;
+                    drawMainMenu();
                 } else {
                     switch(menuPosition) {
                         case 0:
@@ -158,8 +160,11 @@ function speedUpAndShoot(e){
                             break;
                         case 2:
                             inInformations = true;
-                            menuPosition = 0;
                             drawInformations();
+                            break;
+                        case 3:
+                            inInformations = true;
+                            drawCredits();
                             break;
                     }
                 }
@@ -530,7 +535,7 @@ function newGame(){
 
 function showLevel(){
     ctx.fillStyle = "rgba(255, 255, 255, " + levelAlpha + ")";
-    ctx.font = "40px Arial";
+    ctx.font = "bold 40px Courier";
     ctx.textAlign = 'center';
     ctx.fillText("Level " + level, width/2, height / 2);
 }
@@ -588,10 +593,10 @@ function update(){
 
 // ===================== MENU =====================
 
-var menu = ["New Game", "Options", "Controls & UI"];
+var menu = ["New Game", "Options", "Controls & UI", "Credits"];
 var menuOptions = ["Color", "Exit"];
 
-var menuPosition = 2; //changing for tests - default 0
+var menuPosition = 3; //changing for tests - default 0
 
 function drawMainMenu() {
     drawSpace();
@@ -630,7 +635,6 @@ function drawMainMenu() {
     ctx.fillText(option, 0, 0);
     ctx.restore();
 
-    //TODO: add informations about UI
     ctx.save();
     ctx.translate(width / 2, height / 2 + 120);
     ctx.fillStyle = "white";
@@ -644,7 +648,18 @@ function drawMainMenu() {
     ctx.restore();
 
 
-    //TODO: add credits
+    //TODO: finish credits
+    ctx.save();
+    ctx.translate(width / 2, height / 2 + 180);
+    ctx.fillStyle = "white";
+    ctx.font = "25px Courier";
+    ctx.textAlign = 'center';
+    option = menu[3];
+    if(menuPosition == 3){
+        option = "> " + option + " <";
+    }
+    ctx.fillText(option, 0, 0);
+    ctx.restore();
 }
 
 function drawOptions(){
@@ -674,7 +689,6 @@ function drawOptions(){
     ctx.fillText("and your buletts:", 0, 0);
     ctx.restore();
 
-    //newShip(0, 0); // exists just for colour selections
     drawShip();
 
     ctx.save();
@@ -708,17 +722,7 @@ function drawInformations() {
     drawSpace();
 
     showPoints();
-    //newShip(STARTING_LIVES, 0);
     drawLives();
-
-
-    ctx.save();
-    ctx.translate(width / 2, 80);
-    ctx.fillStyle = "white";
-    ctx.font = "bold 50px Courier";
-    ctx.textAlign = 'center';
-    //ctx.fillText("CONTROLS & UI", 0, 0);
-    ctx.restore();
 
     ctx.save();
     ctx.translate(80, 25);
@@ -801,6 +805,52 @@ function drawInformations() {
     ctx.fillText("> Exit <", 0, 0);
     ctx.restore();
 }
+
+
+function drawCredits(){
+    drawSpace();
+
+    ctx.save();
+    ctx.translate(width / 2, 50);
+    ctx.fillStyle = "white";
+    ctx.font = "bold 50px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("CREDITS", 0, 30);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, height / 2 - 50);
+    ctx.fillStyle = "white";
+    ctx.font = "20px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("Game recreated by", 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, height / 2 - 15);
+    ctx.fillStyle = "white";
+    ctx.font = "20px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("\u00A9 Daria Lasecka", 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, height / 2 + 20);
+    ctx.fillStyle = "white";
+    ctx.font = "20px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("2020", 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, height / 2 + 120);
+    ctx.fillStyle = "white";
+    ctx.font = "25px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("> Exit <", 0, 0);
+    ctx.restore();
+}
+
 
 
 drawMainMenu();
