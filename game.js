@@ -46,6 +46,7 @@ var pointsToNextLive = 0;
 //menu
 var inMenu = true;
 var inOptions = false;
+var inInformations = false;
 
 // ===================== space =====================
 
@@ -106,36 +107,45 @@ function speedUpAndShoot(e){
         // menu
         switch(e.key){
             case "ArrowUp":
-                if(!inOptions) {
-                    menuPosition ++;
-                    if(menuPosition > menu.length - 1) menuPosition = 0;
-                    else if (menuPosition < 0) menuPosition = menu.length - 1;
-                    drawMainMenu();
-                }
-                else {
-                    menuPosition ++;
+                if(inOptions) {
+                    menuPosition --;
                     if(menuPosition > menuOptions.length - 1) menuPosition = 0;
                     else if (menuPosition < 0) menuPosition = menuOptions.length - 1;
                     drawOptions();
+                } else if( inInformations) {
+                    //do nothing
+                } else {
+                    menuPosition --;
+                    if(menuPosition > menu.length - 1) menuPosition = 0;
+                    else if (menuPosition < 0) menuPosition = menu.length - 1;
+                    drawMainMenu();
                 }
                 break;
 
             case "ArrowDown":
-                if(!inOptions) {
-                    menuPosition --;
-                    if(menuPosition > menu.length - 1) menuPosition = 0;
-                    else if (menuPosition < 0) menuPosition = menu.length - 1;
-                    drawMainMenu();
-                } else {
-                    menuPosition --;
+                if(inOptions) {
+                    menuPosition ++;
                     if(menuPosition > menuOptions.length - 1) menuPosition = 0;
                     else if (menuPosition < 0) menuPosition = menuOptions.length - 1;
                     drawOptions();
+                } else if( inInformations) {
+                    //do nothing
+                } else {
+                    menuPosition ++;
+                    if(menuPosition > menu.length - 1) menuPosition = 0;
+                    else if (menuPosition < 0) menuPosition = menu.length - 1;
+                    drawMainMenu();
                 }
                 break;
 
             case "Enter":
-                if(!inOptions) {
+                if(inOptions) {
+                    menuPosition = 0;
+                    inOptions = false;
+                    drawMainMenu();
+                } else if (inInformations) {
+                    //do nothing
+                } else {
                     switch(menuPosition) {
                         case 0:
                             inMenu = false;
@@ -146,11 +156,12 @@ function speedUpAndShoot(e){
                             menuPosition = 0;
                             drawOptions();
                             break;
+                        case 2:
+                            inInformations = true;
+                            menuPosition = 0;
+                            drawInformations();
+                            break;
                     }
-                } else {
-                    menuPosition = 0;
-                    inOptions = false;
-                    drawMainMenu();
                 }
                 break;
             case "ArrowRight":
@@ -351,7 +362,7 @@ function destroyAsteroid(index) {
     pointsToNextLive += asteroid.points;
     console.log(points);
     if(pointsToNextLive >= 10000){
-        pointsToNextLive = 0;
+        pointsToNextLive -= 10000;
         ship.lives++;
     }
     asteroids.splice(index, 1);
@@ -577,13 +588,15 @@ function update(){
 
 // ===================== MENU =====================
 
-var menu = ["New Game", "Options"];
+var menu = ["New Game", "Options", "Controls & UI"];
 var menuOptions = ["Color", "Exit"];
 
-var menuPosition = 1;
+var menuPosition = 2; //changing for tests - default 0
 
 function drawMainMenu() {
     drawSpace();
+
+    newShip(STARTING_LIVES, 0); //for menu purposes
 
     ctx.save();
     ctx.translate(width / 2, 80);
@@ -618,6 +631,19 @@ function drawMainMenu() {
     ctx.restore();
 
     //TODO: add informations about UI
+    ctx.save();
+    ctx.translate(width / 2, height / 2 + 120);
+    ctx.fillStyle = "white";
+    ctx.font = "25px Courier";
+    ctx.textAlign = 'center';
+    option = menu[2];
+    if(menuPosition == 2){
+        option = "> " + option + " <";
+    }
+    ctx.fillText(option, 0, 0);
+    ctx.restore();
+
+
     //TODO: add credits
 }
 
@@ -648,7 +674,7 @@ function drawOptions(){
     ctx.fillText("and your buletts:", 0, 0);
     ctx.restore();
 
-    newShip(0, 0); // exists just for colour selections
+    //newShip(0, 0); // exists just for colour selections
     drawShip();
 
     ctx.save();
@@ -674,8 +700,107 @@ function drawOptions(){
     }
     ctx.fillText(option, 0, 0);
     ctx.restore();
-
-    //TODO: Add exit button
 }
+
+//TODO: high score
+
+function drawInformations() {
+    drawSpace();
+
+    showPoints();
+    //newShip(STARTING_LIVES, 0);
+    drawLives();
+
+
+    ctx.save();
+    ctx.translate(width / 2, 80);
+    ctx.fillStyle = "white";
+    ctx.font = "bold 50px Courier";
+    ctx.textAlign = 'center';
+    //ctx.fillText("CONTROLS & UI", 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(80, 25);
+    ctx.fillStyle = "white";
+    ctx.font = "15px Courier";
+    ctx.textAlign = 'left';
+    ctx.fillText("<-- your points", 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(80, 55);
+    ctx.fillStyle = "white";
+    ctx.font = "15px Courier";
+    ctx.textAlign = 'left';
+    ctx.fillText("<-- your lives", 0, 0);
+    ctx.restore();
+
+    //TODO: PURPOUSE OF GAME AND INSTRUCTIONS
+    ctx.save();
+    ctx.translate(width / 2, 120);
+    ctx.fillStyle = "white";
+    ctx.font = "25px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("Controls", 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, 170);
+    ctx.fillStyle = "white";
+    ctx.font = "15px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("Mouse - rotating", 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, 195);
+    ctx.fillStyle = "white";
+    ctx.font = "15px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("Spacebar - shooting", 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, 220);
+    ctx.fillStyle = "white";
+    ctx.font = "15px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("W / Arrow Up - accelerating", 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, 265);
+    ctx.fillStyle = "white";
+    ctx.font = "15px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("Your goal is to get as many points as you can.", 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, 280);
+    ctx.fillStyle = "white";
+    ctx.font = "15px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("Destroying asteroids get points.", 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, 295);
+    ctx.fillStyle = "white";
+    ctx.font = "15px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("You start with 3 lives, but every 10 000 points you get another life.", 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(width / 2, height / 2 + 120);
+    ctx.fillStyle = "white";
+    ctx.font = "25px Courier";
+    ctx.textAlign = 'center';
+    ctx.fillText("> Exit <", 0, 0);
+    ctx.restore();
+}
+
 
 drawMainMenu();
